@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:quran_app/controllers/controller.dart';
@@ -12,7 +11,6 @@ import 'package:translator/translator.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:audioplayers/audioplayers.dart';
 
 class QuranHomeScreen extends StatefulWidget {
   const QuranHomeScreen({super.key});
@@ -24,6 +22,7 @@ class QuranHomeScreen extends StatefulWidget {
 class _QuranHomeScreenState extends State<QuranHomeScreen> {
   FlutterTts flutterTts = FlutterTts();
   bool isLoading = false;
+  bool isPlaying = false;
   QuranResponse? quranResponse;
   String translated = "Translation";
   RxInt surahCounter = 0.obs;
@@ -112,21 +111,21 @@ class _QuranHomeScreenState extends State<QuranHomeScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     // Restricting to horizontal device orientation
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.portraitUp,
+    //   DeviceOrientation.portraitDown,
+    // ]);
     // callApi();
     return SafeArea(
-      child: isLoading == false
-          ? Scaffold(
-              backgroundColor: const Color(0xfffcfcfc),
-              body: Container(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height,
-                child: Column(
-                  children: [
-                    Expanded(
+      child: Scaffold(
+        backgroundColor: const Color(0xfffcfcfc),
+        body: isLoading == false
+            ? Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.topCenter,
+                    child: SingleChildScrollView(
                       child: Column(
                         children: [
                           Padding(
@@ -154,9 +153,12 @@ class _QuranHomeScreenState extends State<QuranHomeScreen> {
                               // color: Colors.blue,
                               child: Obx(
                                 () => Text(
-                                  quranResponse!.data.surahs[surahCounter.value]
-                                      .ayahs[ayatCounter.value].text,
-                                  textAlign: TextAlign.justify,
+                                  quranResponse!
+                                      .data
+                                      .surahs[surahCounter.value]
+                                      .ayahs[ayatCounter.value]
+                                      .text,
+                                  textAlign: TextAlign.right,
                                   style: const TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold,
@@ -192,276 +194,262 @@ class _QuranHomeScreenState extends State<QuranHomeScreen> {
                         ],
                       ),
                     ),
-                    Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: screenHeight * 0.28,
-                      decoration: BoxDecoration(
-                        // color: Colors.orange,
-                        border: Border.all(
-                          color: const Color(0xffc7d1d9),
-                          width: 2,
-                        ),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(25),
-                          topRight: Radius.circular(25),
-                        ),
-                        // shape: BoxShape.circle,
+                  ),
+                ),
+                Container(
+                  child: Container(
+                    alignment: Alignment.bottomCenter,
+                    padding: const EdgeInsets.only(top: 10),
+                    width: MediaQuery.of(context).size.width,
+                    // height: 100,
+                    decoration: BoxDecoration(
+                      // color: Colors.orange,
+                      border: Border.all(
+                        color: const Color(0xffc7d1d9),
+                        width: 2,
                       ),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height * 0.20,
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  left: -10,
-                                  child: CircularButton(
-                                    function: () {
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                        builder: (context) => MySurahList(
-                                            quranResponse: quranResponse!),
-                                      ));
-                                    },
-                                    icon: Icons.menu,
-                                  ),
-                                ),
-                                Positioned(
-                                  left:
-                                      MediaQuery.of(context).size.width * 0.15,
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      if ((ayatCounter.value) >= 1) {
-                                        ayatCounter.value--;
-                                        // devtools.log(ayatCounter.value.toString());
-                                        // devtools.log("len of ayat" + quranResponse!.data.surahs[surahCounter.value]
-                                        //     .ayahs.length.toString());
-                                        await translateApi();
-                                      } else if ((surahCounter.value) >= 1) {
-                                        surahCounter.value--;
-                                        // ayatCounter.value = 0;
-                                        await translateApi();
-                                      }
-                                      // quranResponse!.data.surahs[surahCounter.value]
-                                      //     .ayahs[ayatCounter.value].text
-                                    },
-                                    child: Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.20,
-                                      width: MediaQuery.of(context).size.width *
-                                          0.20,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: const Color(0xffc7d1d9),
-                                            width: 2),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Transform(
-                                          alignment: Alignment.center,
-                                          transform: Matrix4.rotationY(3.14),
-                                          child: SvgPicture.asset(
-                                            "assets/images/Vector.svg",
-                                            height: 32,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  right:
-                                      MediaQuery.of(context).size.width * 0.15,
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      if ((ayatCounter.value) <
-                                          (quranResponse!
-                                                  .data
-                                                  .surahs[surahCounter.value]
-                                                  .ayahs
-                                                  .length -
-                                              1)) {
-                                        ayatCounter.value++;
-                                        // devtools.log(ayatCounter.value.toString());
-                                        // devtools.log("len of ayat" + quranResponse!.data.surahs[surahCounter.value]
-                                        //     .ayahs.length.toString());
-                                        await translateApi();
-                                      } else if ((surahCounter.value) <
-                                          quranResponse!.data.surahs.length -
-                                              1) {
-                                        surahCounter.value++;
-                                        ayatCounter.value = 0;
-                                        await translateApi();
-                                      }
-                                      // quranResponse!.data.surahs[surahCounter.value]
-                                      //     .ayahs[ayatCounter.value].text
-                                    },
-                                    child: Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.20,
-                                      width: MediaQuery.of(context).size.width *
-                                          0.20,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: const Color(0xffc7d1d9),
-                                            width: 2),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: SvgPicture.asset(
-                                          "assets/images/Vector.svg",
-                                          height: 32,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: InkWell(
-                                    onTap: () async {
-                                      await speak(str: quranResponse!.data.surahs[surahCounter.value]
-                                          .ayahs[ayatCounter.value].text);
-
-                                    },
-                                    child: Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.33,
-                                      width: MediaQuery.of(context).size.width *
-                                          0.33,
-                                      // margin: const EdgeInsets.only(bottom: 35),
-                                      decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: const Color(0xffc7d1d9),
-                                            width: 2,
-                                          ),
-                                          shape: BoxShape.circle,
-                                          color: Colors.blue),
-                                      // padding: const EdgeInsets.only(
-                                      //     bottom: 4, right: 3),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(20.0),
-                                        child: Container(
-                                          child: SvgPicture.asset(
-                                            "assets/images/fi-rr-play.svg",
-                                            height: 50,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  right: -10,
-                                  child: GetBuilder<MyController>(
-                                    builder: (controller) => CircularButton(
-                                      color: Get.find<MyController>().selectedAyahsList2
-                                          .contains(quranResponse!
-                                          .data
-                                          .surahs[surahCounter.value]
-                                          .ayahs[ayatCounter.value]
-                                          .number)
-                                          ? Colors.green
-                                          : null,
-                                      iconColor: Get.find<MyController>().selectedAyahsList2
-                                          .contains(quranResponse!
-                                          .data
-                                          .surahs[surahCounter.value]
-                                          .ayahs[ayatCounter.value]
-                                          .number)
-                                          ? Colors.white
-                                          : null,
-                                      function: () {
-                                        if(controller.selectedAyahsList2.contains(quranResponse!
-                                            .data
-                                            .surahs[surahCounter.value]
-                                            .ayahs[ayatCounter.value]
-                                            .number)){
-                                          null;
-                                        }else{
-                                          controller.setAddSelected2(quranResponse!
-                                              .data
-                                              .surahs[surahCounter.value]
-                                              .ayahs[ayatCounter.value]
-                                              .number);
-                                        }
-                                        devtools.log(quranResponse!
-                                            .data
-                                            .surahs[surahCounter.value]
-                                            .ayahs[ayatCounter.value]
-                                            .number.toString());
-                                        devtools.log("abc" + controller.selectedAyahsList2.length.toString());
-                                      },
-
-                                      icon: Icons.check,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height * 0.05,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  quranResponse!.data.surahs[surahCounter.value]
-                                      .englishName
-                                      .toString(),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Surah ${quranResponse!.data.surahs[surahCounter.value].number.toString()}",
-                                      style: const TextStyle(
-                                        fontSize: 08,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 03),
-                                      child: Text(
-                                        "|",
-                                        style: TextStyle(),
-                                      ),
-                                    ),
-                                    Text(
-                                      "Verse ${ayatCounter.value + 1}/${quranResponse!.data.surahs[surahCounter.value].ayahs.length}",
-                                      style: TextStyle(
-                                        fontSize: 08,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(25),
+                        topRight: Radius.circular(25),
                       ),
+                      // shape: BoxShape.circle,
                     ),
-                  ],
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            CircularButton(
+                              function: () {
+                                Navigator.of(context)
+                                    .push(MaterialPageRoute(
+                                  builder: (context) => MySurahList(
+                                      quranResponse: quranResponse!),
+                                ));
+                              },
+                              icon: Icons.menu,
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                if ((ayatCounter.value) >= 1) {
+                                  ayatCounter.value--;
+                                  // devtools.log(ayatCounter.value.toString());
+                                  // devtools.log("len of ayat" + quranResponse!.data.surahs[surahCounter.value]
+                                  //     .ayahs.length.toString());
+                                  await translateApi();
+                                } else if ((surahCounter.value) >= 1) {
+                                  surahCounter.value--;
+                                  // ayatCounter.value = 0;
+                                  await translateApi();
+                                }
+                                // quranResponse!.data.surahs[surahCounter.value]
+                                //     .ayahs[ayatCounter.value].text
+                              },
+                              child: Container(
+                                height: 65,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: const Color(0xffc7d1d9),
+                                      width: 2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Transform(
+                                    alignment: Alignment.center,
+                                    transform: Matrix4.rotationY(3.14),
+                                    child: SvgPicture.asset(
+                                      "assets/images/Vector.svg",
+                                      height: 17,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                await speak(
+                                    str: quranResponse!
+                                        .data
+                                        .surahs[surahCounter.value]
+                                        .ayahs[ayatCounter.value]
+                                        .text);
+                              },
+                              child: Container(
+                                // color: Colors.red,
+                                height: 120,
+                                // margin: const EdgeInsets.only(bottom: 35),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: const Color(0xffc7d1d9),
+                                    width: 2,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  color: Color(0xff00AEEF),
+                                ),
+                                // padding: const EdgeInsets.only(
+                                //     bottom: 4, right: 3),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(17.0),
+                                  child: isPlaying == true ?  Icon(Icons.pause, color: Colors.white,) : Container(
+                                    child: SvgPicture.asset(
+                                      "assets/images/fi-rr-play.svg",
+                                      height: 70,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                if ((ayatCounter.value) <
+                                    (quranResponse!
+                                            .data
+                                            .surahs[surahCounter.value]
+                                            .ayahs
+                                            .length -
+                                        1)) {
+                                  ayatCounter.value++;
+                                  // devtools.log(ayatCounter.value.toString());
+                                  // devtools.log("len of ayat" + quranResponse!.data.surahs[surahCounter.value]
+                                  //     .ayahs.length.toString());
+                                  await translateApi();
+                                } else if ((surahCounter.value) <
+                                    quranResponse!.data.surahs.length - 1) {
+                                  surahCounter.value++;
+                                  ayatCounter.value = 0;
+                                  await translateApi();
+                                }
+                                // quranResponse!.data.surahs[surahCounter.value]
+                                //     .ayahs[ayatCounter.value].text
+                              },
+                              child: Container(
+                                height: 65,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: const Color(0xffc7d1d9),
+                                      width: 2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: SvgPicture.asset(
+                                    "assets/images/Vector.svg",
+                                    height: 17,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            GetBuilder<MyController>(
+                              builder: (controller) => CircularButton(
+                                color: Get.find<MyController>()
+                                        .selectedAyahsList2
+                                        .contains(quranResponse!
+                                            .data
+                                            .surahs[surahCounter.value]
+                                            .ayahs[ayatCounter.value]
+                                            .number)
+                                    ? Colors.green
+                                    : null,
+                                iconColor: Get.find<MyController>()
+                                        .selectedAyahsList2
+                                        .contains(quranResponse!
+                                            .data
+                                            .surahs[surahCounter.value]
+                                            .ayahs[ayatCounter.value]
+                                            .number)
+                                    ? Colors.white
+                                    : null,
+                                function: () {
+                                  if (controller.selectedAyahsList2
+                                      .contains(quranResponse!
+                                          .data
+                                          .surahs[surahCounter.value]
+                                          .ayahs[ayatCounter.value]
+                                          .number)) {
+                                    null;
+                                  } else {
+                                    controller.setAddSelected2(
+                                        quranResponse!
+                                            .data
+                                            .surahs[surahCounter.value]
+                                            .ayahs[ayatCounter.value]
+                                            .number);
+                                  }
+                                  devtools.log(quranResponse!
+                                      .data
+                                      .surahs[surahCounter.value]
+                                      .ayahs[ayatCounter.value]
+                                      .number
+                                      .toString());
+                                  devtools.log("abc" +
+                                      controller.selectedAyahsList2.length
+                                          .toString());
+                                },
+                                icon: Icons.check,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20,),
+                        Container(
+                          // width: MediaQuery.of(context).size.width,
+                          // height: MediaQuery.of(context).size.height * 0.05,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                quranResponse!.data
+                                    .surahs[surahCounter.value].englishName
+                                    .toString(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Surah ${quranResponse!.data.surahs[surahCounter.value].number.toString()}",
+                                    style: const TextStyle(
+                                      fontSize: 08,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 03),
+                                    child: Text(
+                                      "|",
+                                      style: TextStyle(),
+                                    ),
+                                  ),
+                                  Text(
+                                    "Verse ${ayatCounter.value + 1}/${quranResponse!.data.surahs[surahCounter.value].ayahs.length}",
+                                    style: TextStyle(
+                                      fontSize: 08,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 10,),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            )
+            : Center(
+                child: CircularProgressIndicator(
+                  color: Colors.blue,
                 ),
               ),
-            )
-          : Center(
-              child: CircularProgressIndicator(
-                color: Colors.blue,
-              ),
-            ),
+      ),
     );
   }
 }
@@ -485,19 +473,23 @@ class CircularButton extends StatelessWidget {
     return GestureDetector(
       child: GetBuilder<MyController>(
         builder: (controller) => Container(
-          height: MediaQuery.of(context).size.height * 0.20,
-          width: MediaQuery.of(context).size.width * 0.20,
+          alignment: Alignment.center,
+          height: 65,
+          // width: MediaQuery.of(context).size.width * 0.20,
           decoration: BoxDecoration(
             color: color,
             border: Border.all(color: const Color(0xffc7d1d9), width: 2),
             shape: BoxShape.circle,
           ),
-          child: IconButton(
-            onPressed: function,
-            icon: Icon(
-              icon,
-              size: 45,
-              color: iconColor ?? const Color(0xff021229),
+          child: Padding(
+            padding: const EdgeInsets.all(1.0),
+            child: IconButton(
+              onPressed: function,
+              icon: Icon(
+                icon,
+                size: 35,
+                color: iconColor ?? const Color(0xff021229),
+              ),
             ),
           ),
         ),
