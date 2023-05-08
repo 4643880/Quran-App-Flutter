@@ -153,10 +153,14 @@ class MySurahList extends StatelessWidget {
                                                     child: Container(
                                                       padding:
                                                           const EdgeInsets.all(4.0),
-                                                      child: const Icon(
+                                                      child: Icon(
                                                         Icons.check,
                                                         size: 20,
-                                                        color: Color(0xff021229),
+                                                        color: controller.selectedAyahsList2
+                                                            .contains(currentSurah.ayahs[index]
+                                                            .number)
+                                                            ? Colors.white
+                                                            : null,
                                                       ),
                                                     ),
                                                   ),

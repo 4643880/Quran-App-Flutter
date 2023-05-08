@@ -20,5 +20,13 @@ class MyController extends GetxController{
   List<int> get selectedAyahsList2 => _ayahsIdList2;
 
 
+  final List<int> _surahList = [];
+  void setAddSelectedSurah(int id){
+    _surahList.add(id);
+    update();
+  }
+  List<int> get selectedSurahList => _surahList;
+
+
 
 }
