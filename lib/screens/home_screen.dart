@@ -417,7 +417,7 @@ class _QuranHomeScreenState extends State<QuranHomeScreen> {
                                   // padding: const EdgeInsets.only(
                                   //     bottom: 4, right: 3),
                                   child: ConstrainedBox(
-                                    constraints: BoxConstraints(
+                                    constraints: const BoxConstraints(
                                       minWidth: 50,
                                       minHeight: 50,
                                       maxHeight: 100,
